@@ -1,169 +1,150 @@
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useContext, useEffect } from "react";
-import { useState } from "react";
 import AppContext from "../Context/Context";
-import axios from "../axios";
+import API from "../axios";
+
+const formatPrice = (price) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(price);
+
 const Product = () => {
   const { id } = useParams();
-  const { addToCart, removeFromCart, refreshData } =
-    useContext(AppContext);
+  const { addToCart, removeFromCart, refreshData } = useContext(AppContext);
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
+    let active = true;
+    let objectUrl = "";
+
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`/product/${id}`);
-        setProduct(response.data);
+        const response = await API.get(`/product/${id}`);
+        if (active) {
+          setProduct(response.data);
+        }
+
         if (response.data.imageName) {
-          fetchImage();
+          const imageResponse = await API.get(`/product/${id}/image`, {
+            responseType: "blob",
+          });
+          objectUrl = URL.createObjectURL(imageResponse.data);
+          if (active) {
+            setImageUrl(objectUrl);
+          }
         }
       } catch (error) {
         console.error("Error fetching product:", error);
       }
     };
 
-    const fetchImage = async () => {
-      const response = await axios.get(
-        `/product/${id}/image`,
-        { responseType: "blob" }
-      );
-      setImageUrl(URL.createObjectURL(response.data));
-    };
-
     fetchProduct();
+
+    return () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [id]);
 
   const deleteProduct = async () => {
     try {
-      await axios.delete(`/product/${id}`);
-      removeFromCart(id);
-      console.log("Product deleted successfully");
-      alert("Product deleted successfully");
-      refreshData();
+      await API.delete(`/product/${id}`);
+      removeFromCart(Number(id));
+      await refreshData();
       navigate("/");
     } catch (error) {
       console.error("Error deleting product:", error);
     }
   };
 
-  const handleEditClick = () => {
-    navigate(`/product/update/${id}`);
+  const handleAddToCart = () => {
+    addToCart(product);
   };
 
-  const handlAddToCart = () => {
-    addToCart(product);
-    alert("Product added to cart");
-  };
   if (!product) {
     return (
-      <h2 className="text-center" style={{ padding: "10rem" }}>
-        Loading...
-      </h2>
+      <div className="loading-state">
+        <div>
+          <span className="spinner-border" aria-hidden="true" />
+          <span className="visually-hidden">Loading product</span>
+        </div>
+      </div>
     );
   }
+
+  const releaseDate = product.releaseDate
+    ? new Date(product.releaseDate).toLocaleDateString()
+    : "Not specified";
+
   return (
-    <>
-      <div className="containers" style={{ display: "flex" }}>
-        <img
-          className="left-column-img"
-          src={imageUrl}
-          alt={product.imageName}
-          style={{ width: "50%", height: "auto" }}
-        />
-
-        <div className="right-column" style={{ width: "50%" }}>
-          <div className="product-description">
-            <div style={{display:'flex',justifyContent:'space-between' }}>
-            <span style={{ fontSize: "1.2rem", fontWeight: 'lighter' }}>
-              {product.category}
+    <section className="product-detail-page">
+      <div className="product-detail">
+        <div className="product-detail-media">
+          {imageUrl ? (
+            <img src={imageUrl} alt={product.name} />
+          ) : (
+            <span className="product-image-placeholder">
+              <i className="bi bi-image" aria-hidden="true" />
             </span>
-            <p className="release-date" style={{ marginBottom: "2rem" }}>
-              
-              <h6>Listed : <span> <i> {new Date(product.releaseDate).toLocaleDateString()}</i></span></h6>
-              {/* <i> {new Date(product.releaseDate).toLocaleDateString()}</i> */}
-            </p>
-            </div>
-            
-           
-            <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem",textTransform: 'capitalize', letterSpacing:'1px' }}>
-              {product.name}
-            </h1>
-            <i style={{ marginBottom: "3rem" }}>{product.brand}</i>
-            <p style={{fontWeight:'bold',fontSize:'1rem',margin:'10px 0px 0px'}}>PRODUCT DESCRIPTION :</p>
-            <p style={{ marginBottom: "1rem" }}>{product.description}</p>
+          )}
+        </div>
+
+        <div className="product-detail-content">
+          <div className="detail-meta">
+            <span className="category-badge">{product.category}</span>
+            <span className="detail-date">
+              <i className="bi bi-calendar3 me-2" aria-hidden="true" />
+              Listed {releaseDate}
+            </span>
           </div>
 
-          <div className="product-price">
-            <span style={{ fontSize: "2rem", fontWeight: "bold" }}>
-              {"$" + product.price}
-            </span>
+          <h1>{product.name}</h1>
+          <div className="detail-brand">{product.brand}</div>
+          <p className="detail-description">{product.description}</p>
+
+          <div className="detail-purchase">
+            <span className="detail-price">{formatPrice(product.price)}</span>
             <button
-              className={`cart-btn ${
-                !product.productAvailable ? "disabled-btn" : ""
-              }`}
-              onClick={handlAddToCart}
-              disabled={!product.productAvailable}
-              style={{
-                padding: "1rem 2rem",
-                fontSize: "1rem",
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                marginBottom: "1rem",
-              }}
-            >
-              {product.productAvailable ? "Add to cart" : "Out of Stock"}
-            </button>
-            <h6 style={{ marginBottom: "1rem" }}>
-              Stock Available :{" "}
-              <i style={{ color: "green", fontWeight: "bold" }}>
-                {product.stockQuantity}
-              </i>
-            </h6>
-          
-          </div>
-          <div className="update-button" style={{ display: "flex", gap: "1rem" }}>
-            <button
-              className="btn btn-primary"
+              className="primary-action"
               type="button"
-              onClick={handleEditClick}
-              style={{
-                padding: "1rem 2rem",
-                fontSize: "1rem",
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
+              onClick={handleAddToCart}
+              disabled={!product.productAvailable}
             >
-              Update
+              <i className="bi bi-bag-plus-fill" aria-hidden="true" />
+              {product.productAvailable ? "Add to cart" : "Out of stock"}
             </button>
-            {/* <UpdateProduct product={product} onUpdate={handleUpdate} /> */}
+          </div>
+
+          <p className="stock-copy">
+            Available quantity: <strong>{product.stockQuantity}</strong>
+          </p>
+
+          <div className="detail-admin-actions">
             <button
-              className="btn btn-primary"
+              className="secondary-action"
+              type="button"
+              onClick={() => navigate(`/product/update/${id}`)}
+            >
+              <i className="bi bi-pencil-square" aria-hidden="true" />
+              Update product
+            </button>
+            <button
+              className="danger-action"
               type="button"
               onClick={deleteProduct}
-              style={{
-                padding: "1rem 2rem",
-                fontSize: "1rem",
-                backgroundColor: "#dc3545",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
             >
+              <i className="bi bi-trash3-fill" aria-hidden="true" />
               Delete
             </button>
           </div>
         </div>
       </div>
-    </>
+    </section>
   );
 };
 

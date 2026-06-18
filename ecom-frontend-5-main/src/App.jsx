@@ -9,33 +9,37 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UpdateProduct from "./components/UpdateProduct";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import 'bootstrap/dist/css/bootstrap.min.css';
-
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    console.log("Selected category:", category);
   };
+
   return (
     <BrowserRouter>
-        <Navbar onSelectCategory={handleCategorySelect}
-         />
+      <div className="app-shell">
+        <Navbar onSelectCategory={handleCategorySelect} />
+        <main className="app-main">
         <Routes>
           <Route
             path="/"
             element={
-              <Home selectedCategory={selectedCategory} />
+              <Home
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleCategorySelect}
+              />
             }
           />
           <Route path="/add_product" element={<AddProduct />} />
-          <Route path="/product" element={<Product  />} />
-          <Route path="product/:id" element={<Product  />} />
+          <Route path="/product" element={<Product />} />
+          <Route path="product/:id" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/product/update/:id" element={<UpdateProduct />} />
         </Routes>
+        </main>
+      </div>
     </BrowserRouter>
   );
 }

@@ -1,5 +1,5 @@
 import axios from "../axios";
-import { useState, useEffect, createContext } from "react";
+import { useState, useEffect, createContext, useCallback } from "react";
 
 const AppContext = createContext({
   data: [],
@@ -36,21 +36,20 @@ export const AppProvider = ({ children }) => {
   };
 
   const removeFromCart = (productId) => {
-    console.log("productID",productId)
     const updatedCart = cart.filter((item) => item.id !== productId);
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
-    console.log("CART",cart)
   };
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     try {
       const response = await axios.get("/products");
       setData(response.data);
+      setIsError("");
     } catch (error) {
       setIsError(error.message);
     }
-  };
+  }, []);
 
   const clearCart =() =>{
     setCart([]);
@@ -58,7 +57,7 @@ export const AppProvider = ({ children }) => {
   
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [refreshData]);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));

@@ -1,358 +1,111 @@
-// import React, { useContext, useState, useEffect } from "react";
-// // import axios from '../axios';
-// import AppContext from "../Context/Context";
-// import axios from "axios";
-// import CheckoutPopup from "./CheckoutPopup";
-// import { Button } from "react-bootstrap";
-// const Cart = () => {
-//   const { cart, removeFromCart } = useContext(AppContext);
-//   const [cartItems, setCartItems] = useState([]);
-//   const [totalPrice, setTotalPrice] = useState(0);
-//   const [cartImage, setCartImage] =useState([])
-//   const [showModal, setShowModal] = useState(false);
-  
-//   // useEffect(() => {
-//   //   const fetchImagesAndUpdateCart = async () => {
-//   //     console.log("Cart", cart);
-//   //     const updatedCartItems = await Promise.all(
-//   //       cart.map(async (item) => {
-//   //         console.log("ITEM",item)
-//   //         try {
-//   //           const response = await axios.get(
-//   //             `http://localhost:8080/api/product/${item.id}/image`,
-//   //             { responseType: "blob" }
-//   //           );
-//             // const imageFile = await converUrlToFile(response.data,response.data.imageName)
-//   //           setCartImage(imageFile);
-//   //           const imageUrl = URL.createObjectURL(response.data);
-//   //           return { ...item, imageUrl, available: true };
-//   //         } catch (error) {
-//   //           console.error("Error fetching image:", error);
-//   //           return { ...item, imageUrl: "placeholder-image-url", available: false };
-//   //         }
-//   //       })
-//   //     );
-//   //     const filteredCartItems = updatedCartItems.filter((item) => item.available);
-//   //     setCartItems(updatedCartItems);
-     
-//   //   };
-
-//   //   if (cart.length) {
-//   //     fetchImagesAndUpdateCart();
-//   //   }
-//   // }, [cart]);
-
-//   useEffect(() => {
-//     const fetchImagesAndUpdateCart = async () => {
-//       try {
-    
-//         const response = await axios.get("http://localhost:8080/api/products");
-//         const backendProductIds = response.data.map((product) => product.id);
-
-//         const updatedCartItems = cart.filter((item) => backendProductIds.includes(item.id));
-//         const cartItemsWithImages = await Promise.all(
-//           updatedCartItems.map(async (item) => {
-//             try {
-//               const response = await axios.get(
-//                 `http://localhost:8080/api/product/${item.id}/image`,
-//                 { responseType: "blob" }
-//               );
-//               const imageFile = await converUrlToFile(response.data, response.data.imageName);
-//               setCartImage(imageFile)
-//               const imageUrl = URL.createObjectURL(response.data);
-//               return { ...item, imageUrl };
-//             } catch (error) {
-//               console.error("Error fetching image:", error);
-//               return { ...item, imageUrl: "placeholder-image-url" };
-//             }
-//           })
-//         );
-
-//         setCartItems(cartItemsWithImages);
-//       } catch (error) {
-//         console.error("Error fetching product data:", error);
-    
-//       }
-//     };
-
-//     if (cart.length) {
-//       fetchImagesAndUpdateCart();
-//     }
-//   }, [cart]);
-  
-
-
-//   useEffect(() => {
-//     console.log("CartItems", cartItems);
-//   }, [cartItems]);
-//   const converUrlToFile = async(blobData, fileName) => {
-//     const file = new File([blobData], fileName, { type: blobData.type });
-//     return file;
-//   }
-//   useEffect(() => {
-//     const total = cartItems.reduce(
-//       (acc, item) => acc + item.price * item.quantity,
-//       0
-//     );
-//     setTotalPrice(total);
-//   }, [cartItems]);
-
- 
-//   const handleIncreaseQuantity = (itemId) => {
-//     const newCartItems = cartItems.map((item) =>
-//       item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
-//     );
-//     setCartItems(newCartItems);
-//   };
-//   const handleDecreaseQuantity = (itemId) => {
-//     const newCartItems = cartItems.map((item) =>
-//       item.id === itemId
-//         ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
-//         : item
-//     );
-//     setCartItems(newCartItems);
-//   };
-
-//   const handleRemoveFromCart = (itemId) => {
-//     removeFromCart(itemId);
-//     const newCartItems = cartItems.filter((item) => item.id !== itemId);
-//     setCartItems(newCartItems);
-//   };
-
-//   const handleCheckout = async () => {
-//     try {
-//       for (const item of cartItems) {
-//         const { imageUrl, imageName, imageData, imageType, quantity, ...rest } = item;
-//         const updatedStockQuantity = item.stockQuantity - item.quantity;
-  
-//         const updatedProductData = { ...rest, stockQuantity: updatedStockQuantity };
-//         console.log("updated product data", updatedProductData)
-  
-//         const cartProduct = new FormData();
-//         cartProduct.append("imageFile", cartImage);
-//         cartProduct.append(
-//           "product",
-//           new Blob([JSON.stringify(updatedProductData)], { type: "application/json" })
-//         );
-  
-//         await axios
-//           .put(`http://localhost:8080/api/product/${item.id}`, cartProduct, {
-//             headers: {
-//               "Content-Type": "multipart/form-data",
-//             },
-//           })
-//           .then((response) => {
-//             console.log("Product updated successfully:", (cartProduct));
-            
-//           })
-//           .catch((error) => {
-//             console.error("Error updating product:", error);
-//           });
-//       }
-//       setCartItems([]);
-//       setShowModal(false);
-//     } catch (error) {
-//       console.log("error during checkout", error);
-//     }
-//   };
-  
-//   return (
-//     <div className="cart-container">
-//       <div className="shopping-cart">
-//         <div className="title">Shopping Bag</div>
-//         {cartItems.length === 0 ? (
-//           <div className="empty" style={{ textAlign: "left", padding: "2rem" }}>
-//             <h4>Your cart is empty</h4>
-//           </div>
-//         ) : (
-//           <>
-//             {cartItems.map((item) => (
-//               <li key={item.id} className="cart-item">
-//                 <div
-//                   className="item"
-//                   style={{ display: "flex", alignContent: "center" }}
-//                   key={item.id}
-//                 >
-//                   <div className="buttons">
-//                     <div className="buttons-liked">
-//                       <i className="bi bi-heart"></i>
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <img
-//                       // src={cartImage ? URL.createObjectURL(cartImage) : "Image unavailable"}
-//                       src={item.imageUrl}
-//                       alt={item.name}
-//                       className="cart-item-image"
-//                     />
-//                   </div>
-//                   <div className="description">
-//                     <span>{item.brand}</span>
-//                     <span>{item.name}</span>
-//                   </div>
-
-//                   <div className="quantity">
-//                     <button
-//                       className="plus-btn"
-//                       type="button"
-//                       name="button"
-//                       onClick={() => handleIncreaseQuantity(item.id)}
-//                     >
-//                       <i className="bi bi-plus-square-fill"></i>
-//                     </button>
-//                     <input
-//                       type="button"
-//                       name="name"
-//                       value={item.quantity}
-//                       readOnly
-//                     />
-//                     <button
-//                       className="minus-btn"
-//                       type="button"
-//                       name="button"
-//                       // style={{ backgroundColor: "white" }}
-//                       onClick={() => handleDecreaseQuantity(item.id)}
-//                     >
-//                       <i className="bi bi-dash-square-fill"></i>
-//                     </button>
-//                   </div>
-
-//                   <div className="total-price " style={{ textAlign: "center" }}>
-//                     ${item.price * item.quantity}
-//                   </div>
-//                   <button
-//                     className="remove-btn"
-//                     onClick={() => handleRemoveFromCart(item.id)}
-//                   >
-//                     <i className="bi bi-trash3-fill"></i>
-//                   </button>
-//                 </div>
-//               </li>
-//             ))}
-//             <div className="total">Total: ${totalPrice}</div>
-//             <button
-//               className="btn btn-primary"
-//               style={{ width: "100%" }}
-//               onClick={handleCheckout}
-//             >
-//               Checkout
-//             </button>
-//           </>
-//         )}
-//       </div>
-//       <CheckoutPopup
-//         show={showModal}
-//         handleClose={() => setShowModal(false)}
-//         cartItems={cartItems}
-//         totalPrice={totalPrice}
-//         handleCheckout={handleCheckout}
-//       />
-//     </div>
-
-//   );
-// };
-
-// export default Cart;
-
-
-
-
-
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import AppContext from "../Context/Context";
 import API from "../axios";
 import CheckoutPopup from "./CheckoutPopup";
-import { Button } from 'react-bootstrap';
+
+const formatPrice = (price) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(price);
 
 const Cart = () => {
-  const { cart, removeFromCart , clearCart } = useContext(AppContext);
+  const { cart, removeFromCart, clearCart } = useContext(AppContext);
   const [cartItems, setCartItems] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const fetchImagesAndUpdateCart = async () => {
-      console.log("Cart", cart);
+    let active = true;
+    const imageUrls = [];
+
+    const fetchCartItems = async () => {
+      if (!cart.length) {
+        setCartItems([]);
+        return;
+      }
+
       try {
         const response = await API.get("/products");
         const backendProductIds = response.data.map((product) => product.id);
-
-        const updatedCartItems = cart.filter((item) => backendProductIds.includes(item.id));
-        const cartItemsWithImages = await Promise.all(
-          updatedCartItems.map(async (item) => {
+        const availableItems = cart.filter((item) =>
+          backendProductIds.includes(item.id)
+        );
+        const itemsWithImages = await Promise.all(
+          availableItems.map(async (item) => {
             try {
-              const response = await API.get(
-                `/product/${item.id}/image`,
-                { responseType: "blob" }
+              const imageResponse = await API.get(`/product/${item.id}/image`, {
+                responseType: "blob",
+              });
+              const imageFile = new File(
+                [imageResponse.data],
+                item.imageName,
+                { type: imageResponse.data.type }
               );
-              const imageFile = await convertBlobToFile(response.data, item.imageName);
-              const imageUrl = URL.createObjectURL(response.data);
+              const imageUrl = URL.createObjectURL(imageResponse.data);
+              imageUrls.push(imageUrl);
               return { ...item, imageFile, imageUrl };
             } catch (error) {
-              console.error("Error fetching image:", error);
-              return { ...item, imageUrl: "placeholder-image-url" };
+              console.error("Error fetching cart image:", error);
+              return { ...item, imageUrl: "" };
             }
           })
         );
-        console.log("cart",cart)
-        setCartItems(cartItemsWithImages);
+
+        if (active) {
+          setCartItems(itemsWithImages);
+        }
       } catch (error) {
         console.error("Error fetching product data:", error);
       }
     };
 
-    if (cart.length) {
-      fetchImagesAndUpdateCart();
-    }
+    fetchCartItems();
+
+    return () => {
+      active = false;
+      imageUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
   }, [cart]);
 
-  useEffect(() => {
-    const total = cartItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
-    setTotalPrice(total);
-  }, [cartItems]);
-
-  const convertBlobToFile = (blobData, fileName) => {
-    return new File([blobData], fileName, { type: blobData.type });
-  }
+  const totalPrice = cartItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
 
   const handleIncreaseQuantity = (itemId) => {
-    const newCartItems = cartItems.map((item) => {
-      if (item.id === itemId) {
-        if (item.quantity < item.stockQuantity) {
-          return { ...item, quantity: item.quantity + 1 };
-        } else {
-          alert("Cannot add more than available stock");
+    setCartItems((items) =>
+      items.map((item) => {
+        if (item.id !== itemId) {
+          return item;
         }
-      }
-      return item;
-    });
-    setCartItems(newCartItems);
+        if (item.quantity >= item.stockQuantity) {
+          alert("Cannot add more than available stock");
+          return item;
+        }
+        return { ...item, quantity: item.quantity + 1 };
+      })
+    );
   };
-  
 
   const handleDecreaseQuantity = (itemId) => {
-    const newCartItems = cartItems.map((item) =>
-      item.id === itemId
-        ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
-        : item
+    setCartItems((items) =>
+      items.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
+          : item
+      )
     );
-    setCartItems(newCartItems);
   };
 
   const handleRemoveFromCart = (itemId) => {
     removeFromCart(itemId);
-    const newCartItems = cartItems.filter((item) => item.id !== itemId);
-    setCartItems(newCartItems);
+    setCartItems((items) => items.filter((item) => item.id !== itemId));
   };
 
   const handleCheckout = async () => {
     try {
       for (const item of cartItems) {
-        const updatedStockQuantity = item.stockQuantity - item.quantity;
-  
         const updatedProductData = {
           id: item.id,
           name: item.name,
@@ -361,117 +114,137 @@ const Cart = () => {
           price: item.price,
           category: item.category,
           releaseDate: item.releaseDate,
-          stockQuantity: updatedStockQuantity,
+          stockQuantity: item.stockQuantity - item.quantity,
           productAvailable: item.productAvailable,
         };
-        console.log("updated product data", updatedProductData)
-  
+
         const cartProduct = new FormData();
         cartProduct.append("imageFile", item.imageFile);
         cartProduct.append(
           "product",
-          new Blob([JSON.stringify(updatedProductData)], { type: "application/json" })
+          new Blob([JSON.stringify(updatedProductData)], {
+            type: "application/json",
+          })
         );
-  
-        await API
-          .put(`/product/${item.id}`, cartProduct, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then(() => {
-            console.log("Product updated successfully:", (cartProduct));
-          })
-          .catch((error) => {
-            console.error("Error updating product:", error);
-          });
+
+        await API.put(`/product/${item.id}`, cartProduct, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
+
       clearCart();
       setCartItems([]);
       setShowModal(false);
     } catch (error) {
-      console.log("error during checkout", error);
+      console.error("Error during checkout:", error);
     }
   };
 
   return (
-    <div className="cart-container">
-      <div className="shopping-cart">
-        <div className="title">Shopping Bag</div>
-        {cartItems.length === 0 ? (
-          <div className="empty" style={{ textAlign: "left", padding: "2rem" }}>
-            <h4>Your cart is empty</h4>
+    <section className="cart-page">
+      <div className="cart-layout">
+        <div className="cart-list">
+          <div className="cart-list-header">
+            <h1>Shopping bag</h1>
+            <span>
+              {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
+            </span>
           </div>
-        ) : (
-          <>
-            {cartItems.map((item) => (
-              <li key={item.id} className="cart-item">
-                <div
-                  className="item"
-                  style={{ display: "flex", alignContent: "center" }}
-                  key={item.id}
-                >
-                 
-                  <div>
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="cart-item-image"
-                    />
-                  </div>
-                  <div className="description">
-                    <span>{item.brand}</span>
-                    <span>{item.name}</span>
-                  </div>
 
-                  <div className="quantity">
-                    <button
-                      className="plus-btn"
-                      type="button"
-                      name="button"
-                      onClick={() => handleIncreaseQuantity(item.id)}
-                    >
-                      <i className="bi bi-plus-square-fill"></i>
-                    </button>
-                    <input
-                      type="button"
-                      name="name"
-                      value={item.quantity}
-                      readOnly
-                    />
-                    <button
-                      className="minus-btn"
-                      type="button"
-                      name="button"
-                      onClick={() => handleDecreaseQuantity(item.id)}
-                    >
-                      <i className="bi bi-dash-square-fill"></i>
-                    </button>
-                  </div>
+          {cartItems.length === 0 ? (
+            <div className="cart-empty">
+              <div>
+                <span className="cart-empty-icon" aria-hidden="true">
+                  <i className="bi bi-bag" />
+                </span>
+                <h2>Your bag is ready for something colorful</h2>
+                <p>Browse the collection and add your favorite products.</p>
+                <Link className="primary-action mt-3" to="/">
+                  Browse products
+                </Link>
+              </div>
+            </div>
+          ) : (
+            cartItems.map((item) => (
+              <article className="cart-item" key={item.id}>
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="cart-item-image"
+                  />
+                ) : (
+                  <span className="cart-item-image product-image-placeholder">
+                    <i className="bi bi-image" aria-hidden="true" />
+                  </span>
+                )}
+                <div className="cart-item-info">
+                  <div className="cart-item-brand">{item.brand}</div>
+                  <h2 className="cart-item-name">{item.name}</h2>
+                  <span className="cart-item-unit">
+                    {formatPrice(item.price)} each
+                  </span>
+                </div>
 
-                  <div className="total-price " style={{ textAlign: "center" }}>
-                    ${item.price * item.quantity}
-                  </div>
+                <div className="quantity-control" aria-label="Item quantity">
                   <button
-                    className="remove-btn"
-                    onClick={() => handleRemoveFromCart(item.id)}
+                    type="button"
+                    onClick={() => handleDecreaseQuantity(item.id)}
+                    aria-label={`Decrease ${item.name} quantity`}
+                    title="Decrease quantity"
                   >
-                    <i className="bi bi-trash3-fill"></i>
+                    <i className="bi bi-dash-lg" aria-hidden="true" />
+                  </button>
+                  <output aria-label="Quantity">{item.quantity}</output>
+                  <button
+                    type="button"
+                    onClick={() => handleIncreaseQuantity(item.id)}
+                    aria-label={`Increase ${item.name} quantity`}
+                    title="Increase quantity"
+                  >
+                    <i className="bi bi-plus-lg" aria-hidden="true" />
                   </button>
                 </div>
-              </li>
-            ))}
-            <div className="total">Total: ${totalPrice}</div>
-            <Button
-              className="btn btn-primary"
-              style={{ width: "100%" }}
-              onClick={() => setShowModal(true)}
-            >
-              Checkout
-            </Button>
-          </>
-        )}
+
+                <div className="cart-item-total">
+                  {formatPrice(item.price * item.quantity)}
+                </div>
+                <button
+                  className="remove-button"
+                  type="button"
+                  onClick={() => handleRemoveFromCart(item.id)}
+                  aria-label={`Remove ${item.name} from cart`}
+                  title="Remove item"
+                >
+                  <i className="bi bi-trash3-fill" aria-hidden="true" />
+                </button>
+              </article>
+            ))
+          )}
+        </div>
+
+        <aside className="cart-summary">
+          <h2>Order summary</h2>
+          <div className="summary-row">
+            <span>Subtotal</span>
+            <strong>{formatPrice(totalPrice)}</strong>
+          </div>
+          <div className="summary-row summary-total">
+            <span>Total</span>
+            <strong>{formatPrice(totalPrice)}</strong>
+          </div>
+          <button
+            className="primary-action checkout-button"
+            type="button"
+            onClick={() => setShowModal(true)}
+            disabled={cartItems.length === 0}
+          >
+            <i className="bi bi-lock-fill" aria-hidden="true" />
+            Checkout
+          </button>
+        </aside>
       </div>
+
       <CheckoutPopup
         show={showModal}
         handleClose={() => setShowModal(false)}
@@ -479,8 +252,7 @@ const Cart = () => {
         totalPrice={totalPrice}
         handleCheckout={handleCheckout}
       />
-    </div>
-
+    </section>
   );
 };
 
