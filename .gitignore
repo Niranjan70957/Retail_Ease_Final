@@ -1,0 +1,11 @@
+/package-lock.json
+/.idea/
+/.vscode/
+/.cache/
+*.log
+
+ecom/data/
+ecom/target/
+ecom-frontend-5-main/node_modules/
+ecom-frontend-5-main/dist/
+ecom-frontend-5-main/.env

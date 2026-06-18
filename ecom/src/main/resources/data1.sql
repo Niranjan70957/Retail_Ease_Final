@@ -1,0 +1,8 @@
+--INSERT INTO product (name, description, brand, price, category, release_date, quantity, available)
+--VALUES
+--('Alto K10', 'Compact and affordable hatchback', 'Maruti Suzuki', 489000.00, 'Car', '2022-08-18', 15, TRUE),
+--('Nexon EV', 'Electric SUV with modern features', 'Tata', 1475000.00, 'Car', '2023-04-10', 7, TRUE),
+--('XUV700', 'Premium SUV with ADAS technology', 'Mahindra', 1999000.00, 'Car', '2022-11-15', 5, TRUE),
+--('Verna', 'Stylish sedan with sporty design', 'Hyundai', 1334000.00, 'Car', '2023-03-21', 6, TRUE),
+--('Punch', 'Micro-SUV with bold styling', 'Tata', 899000.00, 'Car', '2022-09-05', 10, TRUE),
+--('Thar', 'Off-road SUV with rugged build', 'Mahindra', 1625000.00, 'Car', '2021-12-30', 2, FALSE);
